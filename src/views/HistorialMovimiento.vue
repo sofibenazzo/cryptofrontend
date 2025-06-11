@@ -1,6 +1,23 @@
-  <template>
+<template>
   <div class="container">
     <h1 class="mb-4 text-white">Historial de Movimientos</h1>
+
+    <!-- Filtro por cliente -->
+    <div class="form-group mb-4 w-75 mx-auto filtro-container">
+      <label for="clienteSelect" class="text-white">Seleccionar cliente:</label>
+      <select id="clienteSelect" v-model="clienteSeleccionado" class="form-control">
+        <option disabled value=""> Seleccione un cliente </option>
+        <option v-for="cliente in clientesOrdenados" :key="cliente.id" :value="cliente.id">
+          {{ cliente.nombre }} ({{ cliente.email }})
+        </option>
+      </select>
+      <button class="btn btn-info" @click="filtrarTransacciones" :disabled="!clienteSeleccionado">
+        Filtrar movimientos
+      </button>
+      <button class="btn btn-warning" @click="cargarTransacciones" v-if="clienteSeleccionado">
+        Ver todos
+      </button>
+    </div>
 
     <div v-if="transacciones.length === 0" class="text-gray-600">
       No se encontraron movimientos registrados
@@ -23,7 +40,7 @@
         </thead>
         <tbody>
           <tr v-for="(t, index) in transaccionesOrdenadas" :key="t.id" class="text-center">
-            <td>{{ index +1 }}</td>
+            <td>{{ index + 1 }}</td>
             <td>{{ t.clienteNombre }}</td>
             <td>{{ t.clienteEmail }}</td>
             <td>{{ t.cryptoCode }}</td>
@@ -43,44 +60,70 @@
   </div>
 </template>
 
-  <script setup>
-  import { ref, computed, onMounted } from 'vue';
-  import axios from 'axios';
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 
-  const transacciones = ref([]);
+const transacciones = ref([]);
+const clientes = ref([]);
+const clienteSeleccionado = ref('');
 
-  const cargarTransacciones = async () => {
-    try {
-      const response = await axios.get('/api/transaccion');
-      transacciones.value = response.data;
-    } catch (error) {
-      console.error('Error al cargar transacciones:', error);
-    }
-  };
+const cargarTransacciones = async () => {
+  try {
+    const response = await axios.get('/api/transaccion');
+    transacciones.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar transacciones:', error);
+  }
+};
 
-  // Ordenar los clientes alfabéticamente
-  const transaccionesOrdenadas = computed(() => {
-    return [...transacciones.value].sort((a, b) => a.clienteNombre.localeCompare(b.clienteNombre));
-  });
+const cargarClientes = async () => {
+  try {
+    const response = await axios.get('/api/cliente');
+    clientes.value = response.data;
+  } catch (error) {
+    console.error('Error al cargar clientes:', error);
+  }
+};
 
-  const eliminarTransaccion = async (id) => {
-    if (!confirm('¿Estás segura/o que desea eliminar esta transacción?')) return;
+const filtrarTransacciones = async () => {
+  try {
+    const response = await axios.get(`/api/transaccion/cliente/${clienteSeleccionado.value}`);
+    transacciones.value = response.data;
+  } catch (error) {
+    console.error('Error al filtrar transacciones:', error);
+  }
+};
 
-    try {
-      await axios.delete(`/api/transaccion/${id}`);
-      transacciones.value = transacciones.value.filter(t => t.id !== id);
-    } catch (error) {
-      console.error('Error al eliminar la transacción:', error);
-    }
-  };
+const clientesOrdenados = computed(() => {
+  return [...clientes.value].sort((a, b) => a.nombre.localeCompare(b.nombre));
+});
 
-  const formatFecha = (fechaIso) => {
-    const fecha = new Date(fechaIso);
-    return fecha.toLocaleString('es-AR');
-  };
+const transaccionesOrdenadas = computed(() => {
+  return [...transacciones.value].sort((a, b) => a.clienteNombre.localeCompare(b.clienteNombre));
+});
 
-  onMounted(cargarTransacciones);
-  </script>
+const eliminarTransaccion = async (id) => {
+  if (!confirm('¿Estás segura/o que desea eliminar esta transacción?')) return;
+
+  try {
+    await axios.delete(`/api/transaccion/${id}`);
+    transacciones.value = transacciones.value.filter(t => t.id !== id);
+  } catch (error) {
+    console.error('Error al eliminar la transacción:', error);
+  }
+};
+
+const formatFecha = (fechaIso) => {
+  const fecha = new Date(fechaIso);
+  return fecha.toLocaleString('es-AR');
+};
+
+onMounted(() => {
+  cargarClientes();
+  cargarTransacciones();
+});
+</script>
 
 <style scoped>
 /* Contenedor principal */
@@ -102,12 +145,47 @@ h1 {
   text-align: center;
 }
 
+/* Contenedor de filtro */
+.filtro-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.filtro-container label {
+  white-space: nowrap;
+  color: rgb(0, 0, 0);
+  font-weight: 500;
+}
+
+.filtro-container select.form-control {
+  flex-grow: 1;
+  min-width: 200px;
+}
+
+/* Botones de filtro */
+.filtro-container .btn-info {
+  min-width: 140px;
+  height: 40px;
+  font-size: 1rem;
+  padding: 0 12px;
+}
+
+.filtro-container .btn-warning {
+  min-width: 100px;
+  height: 40px;
+  font-size: 1rem;
+  padding: 0 12px;
+}
+
 /* Contenedor de la tabla */
 .table-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin-top: 20px;
 }
 
 /* Tabla */
@@ -115,7 +193,7 @@ h1 {
   border-collapse: collapse;
   background-color: #f25c5e;
   color: rgb(0, 0, 0);
-  border-radius: 10px; 
+  border-radius: 10px;
   overflow: hidden;
   width: 80%;
 }
@@ -139,7 +217,7 @@ h1 {
   background-color: #c45456;
 }
 
-/* Botones cuadrados */
+/* Botones */
 button {
   font-size: 1rem;
   padding: 10px 15px;
@@ -151,7 +229,7 @@ button {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-/* Botón de información */
+/* Botón */
 .btn-info {
   background-color: #395A4F;
   color: white;
@@ -162,7 +240,7 @@ button {
   transform: scale(1.05);
 }
 
-/* Botón de advertencia */
+/* Botón */
 .btn-warning {
   background-color: #b62927;
   color: white;
