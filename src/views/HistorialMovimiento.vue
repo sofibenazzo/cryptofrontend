@@ -1,33 +1,47 @@
 <template>
-  <div class="container">
-    <h1 class="mb-4 text-white">Historial de Movimientos</h1>
+  <div class="historial-container">
+    <h1>Historial de Movimientos</h1>
 
-    <!-- Filtro por cliente -->
-    <div class="form-group mb-4 w-75 mx-auto filtro-container">
-      <label for="clienteSelect" class="text-white">Seleccionar cliente:</label>
-      <select id="clienteSelect" v-model="clienteSeleccionado" class="form-control">
-        <option disabled value=""> Seleccione un cliente </option>
-        <option v-for="cliente in clientesOrdenados" :key="cliente.id" :value="cliente.id">
+    <!-- Filtrar por cliente -->
+    <div class="filtro-container">
+      <label for="clienteSelect">Seleccionar cliente:</label>
+      <select id="clienteSelect" v-model="clienteSeleccionado">
+        <option disabled value="">Seleccione un cliente</option>
+        <option
+          v-for="cliente in clientesOrdenados"
+          :key="cliente.id"
+          :value="cliente.id"
+        >
           {{ cliente.nombre }} ({{ cliente.email }})
         </option>
       </select>
-      <button class="btn btn-info" @click="filtrarTransacciones" :disabled="!clienteSeleccionado">
-        Filtrar movimientos
+
+      <button
+        class="btn btn-info"
+        @click="filtrarTransacciones"
+        :disabled="!clienteSeleccionado"
+      >
+        Filtrar
       </button>
-      <button class="btn btn-warning" @click="cargarTransacciones" v-if="clienteSeleccionado">
+
+      <button
+        class="btn btn-warning"
+        @click="cargarTransacciones"
+        v-if="clienteSeleccionado"
+      >
         Ver todos
       </button>
     </div>
 
-    <div v-if="transacciones.length === 0" class="text-gray-600">
+    <div v-if="transacciones.length === 0" class="no-movimientos">
       No se encontraron movimientos registrados
     </div>
 
-    <div class="table-container">
-      <table v-if="transacciones.length > 0" class="table table-striped border border-gray-300">
-        <thead class="bg-gray-100">
+    <div class="table-wrapper" v-else>
+      <table class="table">
+        <thead>
           <tr>
-            <th>Id</th>
+            <th>#</th>
             <th>Cliente</th>
             <th>Email</th>
             <th>Cripto</th>
@@ -38,86 +52,116 @@
             <th>Acciones</th>
           </tr>
         </thead>
+
         <tbody>
-          <tr v-for="(t, index) in transaccionesOrdenadas" :key="t.id" class="text-center">
+          <tr v-for="(t, index) in transaccionesOrdenadas" :key="t.id">
             <td>{{ index + 1 }}</td>
             <td>{{ t.clienteNombre }}</td>
             <td>{{ t.clienteEmail }}</td>
             <td>{{ t.cryptoCode }}</td>
             <td>{{ t.action }}</td>
             <td>{{ t.cryptoAmount }}</td>
-            <td>${{ t.money.toFixed(2) }}</td>
+            <td>${{ Number(t.money).toFixed(2) }}</td>
             <td>{{ formatFecha(t.dateTime) }}</td>
-            <td>
-              <button class="btn btn-info btn-sm me-1" @click="detalleTransaccion(t.id)">Detalle</button>
-              <button class="btn btn-warning btn-sm me-1" @click="editarTransaccion(t.id)">Editar</button>
-              <button class="btn btn-danger btn-sm" @click="eliminarTransaccion(t.id)">Eliminar</button>
+
+            <td class="acciones">
+              <button
+                class="btn btn-info"
+                @click="() => router.push(`/transaccion/detalle/${t.id}`)"
+              >
+                Detalle
+              </button>
+
+              <button
+                class="btn btn-warning"
+                @click="() => router.push(`/transaccion/editar/${t.id}`)"
+              >
+                Editar
+              </button>
+
+              <button
+                class="btn btn-danger"
+                @click="eliminarTransaccion(t.id)"
+              >
+                Eliminar
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
+
+const router = useRouter();
 
 const transacciones = ref([]);
 const clientes = ref([]);
-const clienteSeleccionado = ref('');
+const clienteSeleccionado = ref("");
 
+// Se cargan todass las transacciones
 const cargarTransacciones = async () => {
   try {
-    const response = await axios.get('/api/transaccion');
-    transacciones.value = response.data;
-  } catch (error) {
-    console.error('Error al cargar transacciones:', error);
+    const res = await axios.get('/api/transaccion');
+    transacciones.value = res.data;
+  } catch (err) {
+    console.error("Error cargando transacciones:", err);
   }
 };
 
+// Se cargan los clientes
 const cargarClientes = async () => {
   try {
-    const response = await axios.get('/api/cliente');
-    clientes.value = response.data;
-  } catch (error) {
-    console.error('Error al cargar clientes:', error);
+    const res = await axios.get('/api/cliente');
+    clientes.value = res.data;
+  } catch (err) {
+    console.error("Error cargando clientes:", err);
   }
 };
 
+// Filtra por cliente
 const filtrarTransacciones = async () => {
   try {
-    const response = await axios.get(`/api/transaccion/cliente/${clienteSeleccionado.value}`);
-    transacciones.value = response.data;
-  } catch (error) {
-    console.error('Error al filtrar transacciones:', error);
+    const res = await axios.get(`/api/transaccion/cliente/${clienteSeleccionado.value}`);
+    transacciones.value = res.data;
+  } catch (err) {
+    console.error("Error filtrando transacciones:", err);
   }
 };
 
-const clientesOrdenados = computed(() => {
-  return [...clientes.value].sort((a, b) => a.nombre.localeCompare(b.nombre));
-});
-
-const transaccionesOrdenadas = computed(() => {
-  return [...transacciones.value].sort((a, b) => a.clienteNombre.localeCompare(b.clienteNombre));
-});
-
+// Eliminar transacción
 const eliminarTransaccion = async (id) => {
-  if (!confirm('¿Estás segura/o que desea eliminar esta transacción?')) return;
+  if (!confirm("¿Seguro que desea eliminar esta transacción?")) return;
 
   try {
     await axios.delete(`/api/transaccion/${id}`);
     transacciones.value = transacciones.value.filter(t => t.id !== id);
-  } catch (error) {
-    console.error('Error al eliminar la transacción:', error);
+  } catch (err) {
+    console.error("Error eliminando transacción:", err);
   }
 };
 
-const formatFecha = (fechaIso) => {
-  const fecha = new Date(fechaIso);
-  return fecha.toLocaleString('es-AR');
-};
+// Ordenar
+const clientesOrdenados = computed(() =>
+  [...clientes.value].sort((a, b) =>
+    (a.nombre || "").localeCompare(b.nombre || "")
+  )
+);
+
+const transaccionesOrdenadas = computed(() =>
+  [...transacciones.value].sort((a, b) =>
+    (a.clienteNombre || "").localeCompare(b.clienteNombre || "")
+  )
+);
+
+const formatFecha = (fechaIso) =>
+  new Date(fechaIso).toLocaleString("es-AR");
 
 onMounted(() => {
   cargarClientes();
@@ -126,139 +170,111 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Contenedor principal */
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: #A3C9A8;
+.historial-container {
+  max-width: 950px;
+  margin: 40px auto;
   padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
 }
 
-/* Título */
 h1 {
-  font-size: 3rem;
-  color: #000000;
-  margin-bottom: 1.5rem;
   text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
 }
 
-/* Contenedor de filtro */
 .filtro-container {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: center;
-  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .filtro-container label {
-  white-space: nowrap;
-  color: rgb(0, 0, 0);
-  font-weight: 500;
+  font-weight: 600;
+  margin-right: 5px;
 }
 
-.filtro-container select.form-control {
-  flex-grow: 1;
-  min-width: 200px;
+.filtro-container select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-/* Botones de filtro */
-.filtro-container .btn-info {
-  min-width: 140px;
-  height: 40px;
-  font-size: 1rem;
-  padding: 0 12px;
-}
-
-.filtro-container .btn-warning {
-  min-width: 100px;
-  height: 40px;
-  font-size: 1rem;
-  padding: 0 12px;
-}
-
-/* Contenedor de la tabla */
-.table-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-top: 20px;
-}
-
-/* Tabla */
-.table {
-  border-collapse: collapse;
-  background-color: #f25c5e;
-  color: rgb(0, 0, 0);
-  border-radius: 10px;
-  overflow: hidden;
-  width: 80%;
-}
-
-/* Encabezados */
-.table th {
-  background-color: #432330;
-  font-size: 1.4rem;
-  padding: 12px;
-  text-align: center;
-}
-
-/* Filas */
-.table td {
-  padding: 12px;
-  text-align: center;
-}
-
-/* Alternar colores en las filas */
-.table tbody tr:nth-child(even) {
-  background-color: #c45456;
-}
-
-/* Botones */
-button {
-  font-size: 1rem;
-  padding: 10px 15px;
+.filtro-container .btn {
+  padding: 6px 12px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  width: 100px;
-  height: 40px;
-  text-align: center;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-weight: 600;
 }
 
-/* Botón */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.table th, .table td {
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.table th {
+  background: #853c43;
+  color: #fff;
+}
+
+.table tbody tr:nth-child(even) {
+  background: #f4f4f4;
+}
+
+.acciones button {
+  margin: 2px;
+  font-size: 0.9rem;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
 .btn-info {
-  background-color: #395A4F;
-  color: white;
+  background: #395A4F;
+  color: #fff;
 }
 
 .btn-info:hover {
-  background-color: #A3C9A8;
-  transform: scale(1.05);
+  background: #A3C9A8;
 }
 
-/* Botón */
 .btn-warning {
-  background-color: #b62927;
-  color: white;
+  background: #b62927;
+  color: #fff;
 }
 
 .btn-warning:hover {
-  background-color: #9c3433;
-  transform: scale(1.05);
+  background: #9c3433;
 }
 
-/* Botón de eliminación */
 .btn-danger {
-  background-color: #853c43;
-  color: white;
+  background: #853c43;
+  color: #fff;
 }
 
 .btn-danger:hover {
-  background-color: #432330;
-  transform: scale(1.05);
+  background: #432330;
+}
+
+.no-movimientos {
+  text-align: center;
+  color: #555;
+  font-size: 1.2rem;
 }
 </style>

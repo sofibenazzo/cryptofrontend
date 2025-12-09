@@ -1,24 +1,27 @@
 <template>
-  <div class="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
-    <h2 class="text-2xl font-bold">Alta de Cliente</h2>
+  <div class="dashboard-container">
+    <header class="dashboard-header">
+    </header>
 
-    <form @submit.prevent="crearCliente">
-      <div>
-        <label class="block text-sm font-medium">Nombre</label>
-        <input v-model="cliente.name" type="text" class="mt-1 block w-full border rounded p-2" required />
-      </div>
+    <div class="form-card">
+      <h2>Alta de Cliente</h2>
 
-      <div>
-        <label class="block text-sm font-medium">Email</label>
-        <input v-model="cliente.email" type="email" class="mt-1 block w-full border rounded p-2" required />
-      </div>
+      <form @submit.prevent="crearCliente">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input v-model="cliente.name" type="text" required />
+        </div>
 
-      <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Guardar
-      </button>
+        <div class="form-group">
+          <label>Email</label>
+          <input v-model="cliente.email" type="email" required />
+        </div>
 
-      <p v-if="mensaje" class="mt-2 text-green-600 font-semibold">{{ mensaje }}</p>
-    </form>
+        <button type="submit">Guardar</button>
+
+        <p v-if="mensaje" class="mensaje">{{ mensaje }}</p>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -26,22 +29,17 @@
 import { ref } from 'vue'
 import axios from 'axios'
 
-const cliente = ref({
-  name: '',
-  email: ''
-})
-
+const cliente = ref({ name: '', email: '' })
 const mensaje = ref('')
 
 const crearCliente = async () => {
   try {
     await axios.post('https://localhost:7298/api/cliente', cliente.value)
-    mensaje.value = 'Cliente creado con éxito'
-    cliente.value = { Name: '', Email: '' }
+    mensaje.value = 'El cliente fue creado con éxito'
+    cliente.value = { name: '', email: '' }
   } catch (error) {
     console.error('Error:', error)
     if (error.response) {
-      console.log('Respuesta del backend:', error.response)
       mensaje.value = `Error: ${error.response.data}`
     } else if (error.request) {
       mensaje.value = 'Error: No hubo respuesta del servidor'
@@ -50,70 +48,70 @@ const crearCliente = async () => {
     }
   }
 }
-
 </script>
 
 <style scoped>
-/* Estilos en general */
-div.p-6 {
+.dashboard-container {
+  min-height: 100vh;
+  background: #f4f6f8;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: #f4f4f4;
-  font-family: Arial, sans-serif;
   padding: 2rem;
+  font-family: Arial, sans-serif;
 }
 
-/* Contenedor del formulario */
-div.p-6 > div {
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgb(0 0 0 / 0);
-  max-width: 320px;
-  width: 100%;
+.dashboard-header h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.form-card {
+  background: #fff;
   padding: 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
-/* Título */
 h2 {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   margin-bottom: 1.5rem;
-  color: #000;
+  color: #333;
 }
 
-/* Labels */
-label {
-  font-size: 1.25rem;
-  display: block;
+.form-group {
+  margin-bottom: 1.2rem;
   text-align: left;
-  margin-bottom: 0.4rem;
-  color: #000000;
-  font-weight: 600;
 }
 
-/* Inputs */
+label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
 input[type="text"],
 input[type="email"] {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px;
   border-radius: 6px;
+  border: 1px solid #ccc;
   font-size: 1rem;
-  margin-bottom: 1.2rem;
-  transition: border-color 0.3s ease;
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus {
+  border-color: #3b82f6;
   outline: none;
 }
 
-/* Botón */
 button {
-  background-color: #853c43;
-  color: rgb(255, 255, 255);
+  background-color: #3b82f6;
+  color: #fff;
   font-size: 1.1rem;
   padding: 10px 0;
   width: 100%;
@@ -124,15 +122,12 @@ button {
 }
 
 button:hover {
-  background-color: #f25c5e;
+  background-color: #2563eb;
 }
 
-/* Mensaje */
-p[mensaje] {
+.mensaje {
   margin-top: 1rem;
-  color: #3a7d44;
   font-weight: 600;
-  font-size: 1rem;
-  text-align: center;
+  color: #16a34a;
 }
 </style>

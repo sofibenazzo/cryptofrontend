@@ -124,7 +124,6 @@ async function submitTransaccion() {
   loading.value = true;
 
   try {
-    // DTO
     const dto = {
       clienteId: form.value.clienteId,
       cryptoCode: form.value.cryptoCode,
@@ -156,51 +155,82 @@ async function submitTransaccion() {
 </script>
 
 <style scoped>
-/* Estilos generales */
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: #f4f4f4;
-  font-family: Arial, sans-serif;
-}
-
-/* Contenedor */
+/* Contenedor principal */
 .container {
   text-align: center;
   padding: 2rem;
   border-radius: 10px;
-  max-width: 100px;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff; /* card blanco */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Título y etiquetas */
+/* Título */
 h2 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 1.5rem;
   color: #000;
-}
-label {
-  font-size: 2rem;
-  display: block;
-  margin-top: 10px;
+  font-weight: 600;
 }
 
-/* Inputs, select y botón */
-input, select, button {
+/* Labels */
+label {
   font-size: 1rem;
-  width: 50%;
-  padding: 6px;
-  margin-top: 6px;
-  border-radius: 6px;
+  display: block;
+  margin-top: 10px;
+  font-weight: 500;
+  color: #333;
 }
+
+/* Inputs y select */
+input,
+select {
+  font-size: 1rem;
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border-color 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #853C43; /* color de foco consistente con botón */
+}
+
+/* Botón */
 button {
+  font-size: 1rem;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
   background: #853C43;
   color: white;
   cursor: pointer;
-  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
+
 button:hover {
   background: #f25c5e;
+  transform: scale(1.02);
+}
+
+/* Mensajes */
+p {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+p.text-red-600 {
+  color: #e74c3c;
+}
+
+p.text-green-600 {
+  color: #27ae60;
 }
 </style>

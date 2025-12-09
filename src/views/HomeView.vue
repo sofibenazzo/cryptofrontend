@@ -6,13 +6,13 @@
         <!-- Botones -->
         <div class="botones-container">
           <RouterLink to="/alta-cliente" class="text-decoration-none boton-link">
-          <button class="boton-personalizado btn-rojo-oscuro">👥 Alta Cliente</button>
+          <button class="boton-personalizado btn-rojo-oscuro">Alta Cliente</button>
           </RouterLink>
           <RouterLink to="/nueva-transaccion" class="text-decoration-none boton-link">
-            <button class="boton-personalizado btn-rojo-oscuro">➕ Nueva Transacción </button>
+            <button class="boton-personalizado btn-rojo-oscuro">Nueva Transacción </button>
           </RouterLink>
           <RouterLink to="/historial-movimiento" class="text-decoration-none boton-link">
-            <button class="boton-personalizado btn-rojo-coral">📊 Ver Historial</button>
+            <button class="boton-personalizado btn-rojo-coral">Ver Historial</button>
           </RouterLink>
         </div>
       </div>
@@ -38,6 +38,7 @@ export default {
   align-items: center;
   justify-content: center;
   position: relative;
+  font-family: Arial, sans-serif;
 }
 
 .overlay {
@@ -47,16 +48,29 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+}
+
+/* Card central */
+.form-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
 }
 
 /* Botones */
 .botones-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   gap: 1.5rem;
-  width: 300px;
+  width: 100%;
 }
 
 .boton-link {
@@ -67,10 +81,15 @@ export default {
 .boton-personalizado {
   width: 100%;
   padding: 1rem 0;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 600;
   border-radius: 30px;
   border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.boton-personalizado:hover {
+  transform: scale(1.05);
 }
 
 /* Colores personalizados */
@@ -89,6 +108,6 @@ export default {
 }
 
 .btn-rojo-coral:hover {
-  background-color: #e46866; 
+  background-color: #e46866;
 }
 </style>
